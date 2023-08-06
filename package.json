@@ -1,0 +1,17 @@
+{
+  "name": "localizer",
+  "version": "1.0.0",
+  "description": "A simple package to automatically translate existing content on a page to the users native language.",
+  "main": "index.ts",
+  "scripts": {
+    "test-build": "tsc && cp -r lib/ testsite/",
+    "test": "npm run test-build && cmd.exe /C start chrome.exe $(wslpath -w ./testsite/index.html)",
+    "lint": "rome check ."
+  },
+  "author": "tomecho",
+  "license": "ISC",
+  "devDependencies": {
+    "rome": "^12.1.3",
+    "typescript": "^5.1.6"
+  }
+}
