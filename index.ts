@@ -13,9 +13,19 @@ function InjectLocalizer(opt: InjectLocalizerOptions) {
     // find all elements inner text
     console.log(opt);
 
-    console.log(traverseContent(document.body));
+    // first thing we should do is add mutation observer
+    const observer = new MutationObserver(() => {
+        // TODO throttle this call for performance reasons?
+        const mutatedElements = traverseContent(document.body);
+        console.log("mutated elements", mutatedElements);
+    });
+    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
 
-    // TODO add mutation observer to watch content get added https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+    // now look at initial content
+    const initialElements = traverseContent(document.body);
+    console.log("initial elements", initialElements);
+
+    // let's translate the content
     // TODO look at window.navigator.languages to figure out what toLang we should use.
 }
 
