@@ -15,4 +15,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300);
 });
 
-InjectLocalizer();
+InjectLocalizer({ supportLangs: ["es", "he"], fromLang: "en" });
