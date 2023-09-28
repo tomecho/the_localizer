@@ -21,6 +21,18 @@ function selectLang(
 	);
 }
 
+type ContentHash = string;
+async function calcEleHistoryHash(content: string): Promise<ContentHash> {
+	const digest = await crypto.subtle.digest(
+		"SHA-1",
+		new TextEncoder().encode(content),
+	);
+	const digestArr = new Uint8Array(digest);
+	// @ts-ignore(2324) mapping between Uint8 and string is supported
+	// TS doesn't support generics on the Uint8Array map typedef
+	return digestArr.map((x) => `0${x.toString(16)}`.slice(-2)).join("");
+}
+
 function translateContent(
 	{ fromLang, supportLangs }: InjectLocalizerOptions,
 	nodes: Text[],
@@ -45,23 +57,27 @@ function translateContent(
 			);
 			fetch(url)
 				.then((res) => res.json())
-				.then((text: any) => {
-					// TODO fix this any and figure out why the dynamic content isn't working!
-					console.log(text[0][0][0]);
+				.then((text: string[][][]) => {
 					node.textContent = text[0][0][0];
 				});
 		}
 	}
 }
 
-function InjectLocalizer(opt: InjectLocalizerOptions) {
+// a map of element to hash of it's content
+// TODO will this break when content changes after translation?
+const translationEleHistory: Map<Text, ContentHash> = new Map();
+
+async function InjectLocalizer(opt: InjectLocalizerOptions) {
 	// first thing we should do is add mutation observer
-	const observer = new MutationObserver(() => {
+	const observer = new MutationObserver(async () => {
 		// TODO throttle this call for performance reasons?
-		const mutatedElements = traverseContent(document.body);
+
+		translationEleHistory.clear();
+		const mutatedElements = await traverseContent(document.body);
 		console.log("mutated elements", mutatedElements);
 
-		translateContent(opt, initialElements);
+		translateContent(opt, mutatedElements);
 	});
 	observer.observe(document.body, {
 		attributes: true,
@@ -70,7 +86,7 @@ function InjectLocalizer(opt: InjectLocalizerOptions) {
 	});
 
 	// now look at initial content
-	const initialElements = traverseContent(document.body);
+	const initialElements = await traverseContent(document.body);
 	console.log("initial elements", initialElements);
 
 	// let's translate the content
@@ -78,22 +94,32 @@ function InjectLocalizer(opt: InjectLocalizerOptions) {
 }
 
 // build array of Text objects to be translated
-function traverseContent(ele: ChildNode, accumulated: Text[] = []): Text[] {
+async function traverseContent(
+	ele: ChildNode | Text,
+	accumulated: Promise<Text[]> = Promise.resolve([]),
+): Promise<Text[]> {
 	if (ele instanceof Text) {
 		// this is just text
 		// text doesn't have children
-		const hasContent = ele.textContent?.trim() !== "";
+		const trimmedContent = ele.textContent?.trim();
+		const hasContent = trimmedContent && trimmedContent !== "";
 		if (hasContent) {
-			return accumulated.concat(ele);
+			if (
+				!translationEleHistory.has(ele) || // never seen the element before
+				translationEleHistory.get(ele) ===
+					(await calcEleHistoryHash(trimmedContent)) // or it's content has changed
+			) {
+				return Promise.resolve((await accumulated).concat(ele));
+			}
 		}
-		return accumulated;
+		return Promise.resolve(accumulated);
 	} else {
 		if ((ele as HTMLElement).attributes.getNamedItem("data-no-translate")) {
 			// don't go any deeper, we were told not to!
-			// TODO what happens if we don't want the surface to be translated but we do want the deeper nodes to be?!
 			return accumulated;
 		}
 
+		// traverse children and flatten to a `accumulated: Text[]`
 		return (
 			Array
 				// we use childNodes instead of children because it includes the raw text
