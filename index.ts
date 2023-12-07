@@ -37,7 +37,7 @@ function translateContent(
 	{ fromLang, supportLangs }: InjectLocalizerOptions,
 	nodes: Text[],
 ) {
-	const toLang = "es" || selectLang(supportLangs);
+	const toLang = selectLang(supportLangs);
 	if (!toLang?.length) {
 		console.error(
 			"no suitable language between supported langs ",

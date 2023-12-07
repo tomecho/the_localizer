@@ -10,7 +10,9 @@ Small library which identifies text
 * unit tests?
 * items render on the page before the content is translated, is that ok?
 * what happens if an element's text is edited, do we capture that?
-* visually organize the different tests on the test site together (like in different pannels) so it's easy to understand what's going on there
 
 # Backend 
 Is it needed? Probably yes because the free google api has limits
+
+# Testing
+Run `npm test` to build the project and inject it into the "test site" sandbox.  You can edit testsite/ to create other tests.

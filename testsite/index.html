@@ -5,18 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>My Website</title>
-    <style>
-      body {
-        background-color: rgb(91, 89, 89);
-      }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
   </head>
   <body>
-    <main>
-        <h1>Hello this is static content that should be translated</h1>  
-        <h1 data-no-translate="true">Hello this is static content that should not be translated</h1>
-        <button>Add an element!</button>
-    </main>
+    <article>
+      <header data-no-translate="true">Static Content</header>
+      <h1>Hello this is static content that should be translated</h1>  
+      <h1 data-no-translate="true">Hello this is static content that should not be translated</h1>
+    </article>
+    <article id="article-delayed">
+      <header data-no-translate="true">Delayed Content</header>
+    </article>
+    <article id="article-manual">
+      <header data-no-translate="true">Manual Content</header>
+      <footer>
+        <button data-no-translate="true">Add an element!</button>
+      </footer>
+    </article>
 	<script src="lib/index.js"></script>
 	<script src="index.js"></script>
   </body>
